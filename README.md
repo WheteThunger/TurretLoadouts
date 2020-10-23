@@ -153,6 +153,7 @@ Default configuration:
   - `AllowedAmmo` -- Mapping of ammo item short names to total amounts to allow per custom loadout. This includes both the loaded ammo and reserve ammo. For example, if you allow 200 rifle ammo, a player may save a loadout with 30 ammo in the weapon and at most 170 in reserve.
     - Exclude this option to allow unlimited ammo of all types.
     - Setting to `{}` will allow no ammo.
+    - Setting an ammo type to `-1` will allow unlimited ammo of that type.
     - If this option is used, only the ammo types specified will be allowed. Unspecified ammo types will max at 0.
 
 ### Example rulesets
