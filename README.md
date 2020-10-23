@@ -20,7 +20,7 @@ The main feature of this plugin is to automatically fill turrets with weapons, a
 ## Permissions
 
 - `turretloadouts.autoauth` -- For players with this permission, deploying a turret will automatically authorize the player to it.
-- `turretloadouts.autotoggle` -- For players with this permission, deploying a turret will automatically power it on if filled with a weapon and ammo.
+- `turretloadouts.autotoggle` -- For players with this permission, deploying a turret will automatically power it on, but only if it was filled with a weapon and ammo.
 - `turretloadouts.manage` -- Allows the player to use `tl`, `tl help|list`, and `tl <loadout name>`.
 - `turretloadouts.manage.custom` -- Allows the player to manage custom loadouts using `tl save|update|rename|delete`, according to their allowed loadout ruleset. Also allows the commands from the `turretloadouts.manage` permission.
 
@@ -222,15 +222,6 @@ Any weapon except M249, any attachments except silencer, and any ammo.
   "Generic.Error.DefaultLoadout": "Error: You cannot edit the default loadout.",
   "Generic.Header": "<size=16><color=#fa5>Turret Loadouts</color></size>",
   "Generic.FilledFromLoadout": "Filled turret with loadout: <color=#fe4>{0}</color>. Type <color=#fe4>/tl help</color> for more options.",
-  "Abbreviation.weapon.mod.8x.scope": "16x",
-  "Abbreviation.weapon.mod.flashlight": "FL",
-  "Abbreviation.weapon.mod.holosight": "HS",
-  "Abbreviation.weapon.mod.lasersight": "LS",
-  "Abbreviation.weapon.mod.muzzleboost": "MBS",
-  "Abbreviation.weapon.mod.muzzlebrake": "MBR",
-  "Abbreviation.weapon.mod.silencer": "SL",
-  "Abbreviation.weapon.mod.simplesight": "SS",
-  "Abbreviation.weapon.mod.small.scope": "8x",
   "Command.Activate.Error.Syntax": "Syntax: <color=#fe4>tl <loadout name></color>",
   "Command.Activate.Success.Deactivated": "Deactivated <color=#fe4>{0}</color> loadout.",
   "Command.Default.HelpHint": "Use <color=#fe4>tl help</color> for more options.",
@@ -257,11 +248,21 @@ Any weapon except M249, any attachments except silencer, and any ammo.
   "Command.Rename.Success": "Renamed <color=#fe4>{0}</color> loadout to <color=#fe4>{1}</color>.",
   "Command.Delete.Error.Syntax": "Syntax: <color=#fe4>tl delete <name></color>",
   "Command.Delete.Success": "Deleted <color=#fe4>{0}</color> loadout.",
+  "Command.Help.Details": "<color=#fe4>tl</color> - Show your active loadout details",
   "Command.Help.List": "<color=#fe4>tl list</color> - List turret loadouts",
   "Command.Help.Activate": "<color=#fe4>tl <loadout name></color> - Toggle whether a loadout is active",
   "Command.Help.Save": "<color=#fe4>tl save <name></color> - Save a loadout with the turret you are aiming at",
   "Command.Help.Update": "<color=#fe4>tl update <name></color> - Overwrite an existing loadout with the turret you are aiming at",
   "Command.Help.Rename": "<color=#fe4>tl rename <name> <new name></color> - Rename a loadout",
-  "Command.Help.Delete": "<color=#fe4>tl delete <name></color> - Delete a loadout"
+  "Command.Help.Delete": "<color=#fe4>tl delete <name></color> - Delete a loadout",
+  "Abbreviation.weapon.mod.8x.scope": "16x",
+  "Abbreviation.weapon.mod.flashlight": "FL",
+  "Abbreviation.weapon.mod.holosight": "HS",
+  "Abbreviation.weapon.mod.lasersight": "LS",
+  "Abbreviation.weapon.mod.muzzleboost": "MBS",
+  "Abbreviation.weapon.mod.muzzlebrake": "MBR",
+  "Abbreviation.weapon.mod.silencer": "SL",
+  "Abbreviation.weapon.mod.simplesight": "SS",
+  "Abbreviation.weapon.mod.small.scope": "8x"
 }
 ```

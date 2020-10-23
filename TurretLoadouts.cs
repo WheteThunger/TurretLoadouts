@@ -242,6 +242,7 @@ namespace Oxide.Plugins
 
             var sb = new StringBuilder();
             sb.AppendLine(GetMessage(player, "Generic.Header"));
+            sb.AppendLine(GetMessage(player, "Command.Help.Details"));
             sb.AppendLine(GetMessage(player, "Command.Help.List"));
             sb.AppendLine(GetMessage(player, "Command.Help.Activate"));
 
@@ -1567,16 +1568,6 @@ namespace Oxide.Plugins
                 ["Generic.Header"] = "<size=16><color=#fa5>Turret Loadouts</color></size>",
                 ["Generic.FilledFromLoadout"] = "Filled turret with loadout: <color=#fe4>{0}</color>. Type <color=#fe4>/tl help</color> for more options.",
 
-                ["Abbreviation.weapon.mod.8x.scope"] = "16x",
-                ["Abbreviation.weapon.mod.flashlight"] = "FL",
-                ["Abbreviation.weapon.mod.holosight"] = "HS",
-                ["Abbreviation.weapon.mod.lasersight"] = "LS",
-                ["Abbreviation.weapon.mod.muzzleboost"] = "MBS",
-                ["Abbreviation.weapon.mod.muzzlebrake"] = "MBR",
-                ["Abbreviation.weapon.mod.silencer"] = "SL",
-                ["Abbreviation.weapon.mod.simplesight"] = "SS",
-                ["Abbreviation.weapon.mod.small.scope"] = "8x",
-
                 ["Command.Activate.Error.Syntax"] = "Syntax: <color=#fe4>tl <loadout name></color>",
                 ["Command.Activate.Success.Deactivated"] = "Deactivated <color=#fe4>{0}</color> loadout.",
 
@@ -1610,12 +1601,23 @@ namespace Oxide.Plugins
                 ["Command.Delete.Error.Syntax"] = "Syntax: <color=#fe4>tl delete <name></color>",
                 ["Command.Delete.Success"] = "Deleted <color=#fe4>{0}</color> loadout.",
 
+                ["Command.Help.Details"] = "<color=#fe4>tl</color> - Show your active loadout details",
                 ["Command.Help.List"] = "<color=#fe4>tl list</color> - List turret loadouts",
                 ["Command.Help.Activate"] = "<color=#fe4>tl <loadout name></color> - Toggle whether a loadout is active",
                 ["Command.Help.Save"] = "<color=#fe4>tl save <name></color> - Save a loadout with the turret you are aiming at",
                 ["Command.Help.Update"] = "<color=#fe4>tl update <name></color> - Overwrite an existing loadout with the turret you are aiming at",
                 ["Command.Help.Rename"] = "<color=#fe4>tl rename <name> <new name></color> - Rename a loadout",
                 ["Command.Help.Delete"] = "<color=#fe4>tl delete <name></color> - Delete a loadout",
+
+                ["Abbreviation.weapon.mod.8x.scope"] = "16x",
+                ["Abbreviation.weapon.mod.flashlight"] = "FL",
+                ["Abbreviation.weapon.mod.holosight"] = "HS",
+                ["Abbreviation.weapon.mod.lasersight"] = "LS",
+                ["Abbreviation.weapon.mod.muzzleboost"] = "MBS",
+                ["Abbreviation.weapon.mod.muzzlebrake"] = "MBR",
+                ["Abbreviation.weapon.mod.silencer"] = "SL",
+                ["Abbreviation.weapon.mod.simplesight"] = "SS",
+                ["Abbreviation.weapon.mod.small.scope"] = "8x",
             }, this, "en");
         }
 
