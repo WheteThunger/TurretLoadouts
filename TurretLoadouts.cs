@@ -13,7 +13,7 @@ using UnityEngine;
 namespace Oxide.Plugins
 {
     [Info("Turret Loadouts", "WhiteThunder", "1.0.0")]
-    [Description("Automatically fills turrets with weapons, attachments and ammo, using confiurable loadouts.")]
+    [Description("Automatically fills turrets with weapons, attachments and ammo, using configurable loadouts.")]
     internal class TurretLoadouts : CovalencePlugin
     {
         #region Fields
