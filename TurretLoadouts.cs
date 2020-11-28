@@ -55,9 +55,9 @@ namespace Oxide.Plugins
 
             if (!pluginConfig.lockAutoFilledTurrets)
             {
-                Unsubscribe(nameof(OnEntityDeath));
                 Unsubscribe(nameof(OnTurretToggle));
                 Unsubscribe(nameof(CanMoveItem));
+                Unsubscribe(nameof(OnDropContainerEntity));
             }
         }
 
@@ -65,14 +65,17 @@ namespace Oxide.Plugins
         {
             if (initialBoot)
             {
-                // Update locked turrets so they can be picked up
+                // Update locked turrets so they can be picked up and don't drop loot
                 // This is done even if the config option for locked turrets is off
                 // because there could be locked turrets lingering from a previous configuration
                 foreach (var entity in BaseNetworkable.serverEntities)
                 {
                     var turret = entity as AutoTurret;
                     if (turret != null && IsTurretLocked(turret))
+                    {
+                        turret.dropChance = 0;
                         turret.pickup.requireEmptyInv = false;
+                    }
                 }
             }
         }
@@ -123,6 +126,7 @@ namespace Oxide.Plugins
                     {
                         weaponItem.contents.SetLocked(true);
                         turret.inventory.SetLocked(true);
+                        turret.dropChance = 0;
                         turret.pickup.requireEmptyInv = false;
                     }
 
@@ -134,12 +138,6 @@ namespace Oxide.Plugins
             turret.SendNetworkUpdate();
         }
 
-        private void OnEntityDeath(AutoTurret turret)
-        {
-            if (turret != null && IsTurretLocked(turret))
-                turret.inventory.Kill();
-        }
-
         private void OnTurretToggle(AutoTurret turret)
         {
             // Remove items if powering down while locked and out of ammo
@@ -147,7 +145,7 @@ namespace Oxide.Plugins
             if (turret != null && turret.IsOnline() && IsTurretLocked(turret) && GetTotalAmmo(turret) == 0)
             {
                 turret.inventory.Clear();
-                turret.inventory.SetFlag(ItemContainer.Flag.IsLocked, false);
+                turret.inventory.SetLocked(false);
             }
         }
 
@@ -158,6 +156,16 @@ namespace Oxide.Plugins
 
             // Fix issue where right-clicking an item in a locked turret inventory allows moving it
             if (item.parent.entityOwner is AutoTurret && item.parent.IsLocked())
+                return false;
+
+            return null;
+        }
+
+        // Compatibility with plugin: Remover Tool (RemoverTool)
+        private object OnDropContainerEntity(AutoTurret turret)
+        {
+            // Prevent Remover Tool from explicitly dropping the turret inventory
+            if (IsTurretLocked(turret))
                 return false;
 
             return null;

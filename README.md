@@ -129,7 +129,7 @@ Default configuration:
 ```
 
 - `LockAutoFilledTurrets` (`true` or `false`) -- While `true`, turrets that are automatically filled will be locked so that players cannot add or remove the weapon, attachments or ammo.
-  - Locked turrets will not drop items when destroyed.
+  - Locked turrets will not drop items when destroyed or removed. Compatible with the Remover Tool plugin.
   - Locked turrets can still be picked up.
   - When a locked turret runs out of ammo, a player can power it down to automatically remove the turret's weapon and unlock its inventory. This allows the player to use the turret like normal (otherwise it would be useless).
 - `MaxLoadoutsPerPlayer` -- The maximum number of custom loadouts that each player can have at once.
