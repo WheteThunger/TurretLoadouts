@@ -30,7 +30,7 @@ You can assign players default loadouts using permissions of the format `turretl
 
 A default loadout will automatically be active unless the player has used the `tl <loadout name>` command to deactivate it or to activate a custom loadout. If you want to force players to use their default loadout always, simply **do not** give them the `turretloadouts.manage` or `turretloadouts.manage.custom` perimssions.
 
-Note: Default loadouts ignore rulesets.
+Note: Default loadouts ignore rulesets and ammo stack size limits.
 
 ### Custom loadout rulesets
 

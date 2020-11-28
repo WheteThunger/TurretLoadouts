@@ -816,7 +816,8 @@ namespace Oxide.Plugins
                     continue;
                 }
 
-                var amountToAdd = Math.Min(ammo.amount, itemDefinition.stackable);
+                // Allow default loadouts to bypass max stack size
+                var amountToAdd = loadout.IsDefault ? ammo.amount : Math.Min(ammo.amount, itemDefinition.stackable);
                 var ammoItem = ItemManager.Create(itemDefinition, amountToAdd);
                 if (!ammoItem.MoveToContainer(turret.inventory, slot))
                 {
