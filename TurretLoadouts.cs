@@ -392,7 +392,7 @@ namespace Oxide.Plugins
         {
             if (!VerifyPermissionAny(player, Permission_ManageCustom))
                 return;
-            
+
             if (args.Length < 1)
             {
                 ReplyToPlayer(player, "Command.Update.Error.Syntax");
@@ -697,16 +697,19 @@ namespace Oxide.Plugins
                 peacekeeper = turret.PeacekeeperMode()
             };
 
-            var attachments = new List<string>();
-            for (var slot = 0; slot < weaponItem.contents.capacity; slot++)
+            if (weaponItem.contents != null)
             {
-                var attachmentItem = weaponItem.contents.GetSlot(slot);
-                if (attachmentItem != null)
-                    attachments.Add(attachmentItem.info.shortname);
-            }
+                var attachments = new List<string>();
+                for (var slot = 0; slot < weaponItem.contents.capacity; slot++)
+                {
+                    var attachmentItem = weaponItem.contents.GetSlot(slot);
+                    if (attachmentItem != null)
+                        attachments.Add(attachmentItem.info.shortname);
+                }
 
-            if (attachments.Count > 0)
-                loadout.attachments = attachments;
+                if (attachments.Count > 0)
+                    loadout.attachments = attachments;
+            }
 
             if (weapon.primaryMagazine.contents > 0)
             {
@@ -944,7 +947,7 @@ namespace Oxide.Plugins
                 {
                     var loadout = loadouts[i];
                     var validationResult = ValidateAndPossiblyReduceLoadout(loadout, ruleset);
-                    
+
                     if (validationResult == ValidationResult.InvalidWeapon)
                         pluginInstance.LogWarning($"Removed turret loadout '{loadout.name}' for player '{ownerId}' because weapon '{loadout.weapon}' is not a valid item.");
                     else if (validationResult == ValidationResult.DisallowedWeapon)
@@ -1184,7 +1187,7 @@ namespace Oxide.Plugins
                     return loadout;
                 }
             }
-            
+
             // Player doesn't have permission to use custom loadouts, or they have not set an active one
             return GetPlayerDefaultLoadout(userIdString);
         }
