@@ -18,7 +18,7 @@ namespace Oxide.Plugins
     {
         #region Fields
 
-        private static TurretLoadouts pluginInstance;
+        private static TurretLoadouts _pluginInstance;
 
         private const int LoadoutNameMaxLength = 20;
 
@@ -30,9 +30,9 @@ namespace Oxide.Plugins
         private const string Permission_DefaultLoadoutPrefix = "turretloadouts.default";
         private const string Permission_RulesetPrefix = "turretloadouts.ruleset";
 
-        private readonly Dictionary<string, PlayerData> playerDataCache = new Dictionary<string, PlayerData>();
+        private readonly Dictionary<string, PlayerData> _playerDataCache = new Dictionary<string, PlayerData>();
 
-        private Configuration pluginConfig;
+        private Configuration _pluginConfig;
 
         #endregion
 
@@ -40,20 +40,20 @@ namespace Oxide.Plugins
 
         private void Init()
         {
-            pluginInstance = this;
+            _pluginInstance = this;
 
             permission.RegisterPermission(Permission_AutoAuth, this);
             permission.RegisterPermission(Permission_AutoToggle, this);
             permission.RegisterPermission(Permission_Manage, this);
             permission.RegisterPermission(Permission_ManageCustom, this);
 
-            foreach (var defaultLoadout in pluginConfig.defaultLoadouts)
+            foreach (var defaultLoadout in _pluginConfig.defaultLoadouts)
                 permission.RegisterPermission(GetDefaultLoadoutPermission(defaultLoadout.name), this);
 
-            foreach (var permissionConfig in pluginConfig.loadoutRulesets)
+            foreach (var permissionConfig in _pluginConfig.loadoutRulesets)
                 permission.RegisterPermission(GetLoadoutRulesetPermission(permissionConfig.name), this);
 
-            if (!pluginConfig.lockAutoFilledTurrets)
+            if (!_pluginConfig.lockAutoFilledTurrets)
             {
                 Unsubscribe(nameof(OnTurretToggle));
                 Unsubscribe(nameof(CanMoveItem));
@@ -61,28 +61,25 @@ namespace Oxide.Plugins
             }
         }
 
-        private void OnServerInitialized(bool initialBoot)
+        private void OnServerInitialized()
         {
-            if (initialBoot)
+            // Update locked turrets so they can be picked up and don't drop loot
+            // This is done even if the config option for locked turrets is off
+            // because there could be locked turrets lingering from a previous configuration
+            foreach (var entity in BaseNetworkable.serverEntities)
             {
-                // Update locked turrets so they can be picked up and don't drop loot
-                // This is done even if the config option for locked turrets is off
-                // because there could be locked turrets lingering from a previous configuration
-                foreach (var entity in BaseNetworkable.serverEntities)
+                var turret = entity as AutoTurret;
+                if (turret != null && IsTurretLocked(turret))
                 {
-                    var turret = entity as AutoTurret;
-                    if (turret != null && IsTurretLocked(turret))
-                    {
-                        turret.dropChance = 0;
-                        turret.pickup.requireEmptyInv = false;
-                    }
+                    turret.dropChance = 0;
+                    turret.pickup.requireEmptyInv = false;
                 }
             }
         }
 
         private void Unload()
         {
-            pluginInstance = null;
+            _pluginInstance = null;
         }
 
         private void OnEntityBuilt(Planner plan, GameObject go)
@@ -123,7 +120,7 @@ namespace Oxide.Plugins
                             turretSwitch.SetSwitch(true);
                     }
 
-                    if (pluginConfig.lockAutoFilledTurrets)
+                    if (_pluginConfig.lockAutoFilledTurrets)
                     {
                         heldItem.contents.SetLocked(true);
                         turret.inventory.SetLocked(true);
@@ -150,7 +147,7 @@ namespace Oxide.Plugins
             }
         }
 
-        private object CanMoveItem(Item item)
+        private bool? CanMoveItem(Item item)
         {
             if (item.parent == null)
                 return null;
@@ -163,7 +160,7 @@ namespace Oxide.Plugins
         }
 
         // Compatibility with plugin: Remover Tool (RemoverTool)
-        private object OnDropContainerEntity(AutoTurret turret)
+        private bool? OnDropContainerEntity(AutoTurret turret)
         {
             // Prevent Remover Tool from explicitly dropping the turret inventory
             if (IsTurretLocked(turret))
@@ -356,9 +353,9 @@ namespace Oxide.Plugins
                 return;
             }
 
-            if (playerData.loadouts.Count >= pluginConfig.maxLoadoutsPerPlayer)
+            if (playerData.loadouts.Count >= _pluginConfig.maxLoadoutsPerPlayer)
             {
-                ReplyToPlayer(player, "Command.Save.Error.TooManyLoadouts", pluginConfig.maxLoadoutsPerPlayer);
+                ReplyToPlayer(player, "Command.Save.Error.TooManyLoadouts", _pluginConfig.maxLoadoutsPerPlayer);
                 return;
             }
 
@@ -668,17 +665,17 @@ namespace Oxide.Plugins
 
         private void MaybeAuthTurret(AutoTurret turret, BasePlayer ownerPlayer)
         {
-            if (HasPermissionAny(ownerPlayer, Permission_AutoAuth))
+            if (!HasPermissionAny(ownerPlayer, Permission_AutoAuth))
+                return;
+
+            if (turret.IsAuthed(ownerPlayer))
+                return;
+
+            turret.authorizedPlayers.Add(new PlayerNameID
             {
-                if (!turret.authorizedPlayers.Any(player => player != null && player.userid == ownerPlayer.userID))
-                {
-                    turret.authorizedPlayers.Add(new PlayerNameID
-                    {
-                        userid = ownerPlayer.userID,
-                        username = ownerPlayer.UserIDString
-                    });
-                }
-            }
+                userid = ownerPlayer.userID,
+                username = ownerPlayer.UserIDString
+            });
         }
 
         private TurretLoadout CreateLoadout(AutoTurret turret)
@@ -904,15 +901,15 @@ namespace Oxide.Plugins
         private PlayerData GetPlayerData(string userIdString)
         {
             PlayerData data;
-            if (playerDataCache.TryGetValue(userIdString, out data))
+            if (_playerDataCache.TryGetValue(userIdString, out data))
                 return data;
 
             data = PlayerData.Get(userIdString);
-            playerDataCache[userIdString] = data;
+            _playerDataCache[userIdString] = data;
             return data;
         }
 
-        internal class PlayerData : LoadoutManager
+        private class PlayerData : LoadoutManager
         {
             public static PlayerData Get(string ownerId)
             {
@@ -925,7 +922,7 @@ namespace Oxide.Plugins
                 return data;
             }
 
-            private static string GetFilepath(string ownerId) => $"{pluginInstance.Name}/{ownerId}";
+            private static string GetFilepath(string ownerId) => $"{_pluginInstance.Name}/{ownerId}";
 
             [JsonProperty("OwnerId")]
             public string ownerId { get; private set; }
@@ -953,9 +950,9 @@ namespace Oxide.Plugins
                     var validationResult = ValidateAndPossiblyReduceLoadout(loadout, ruleset);
 
                     if (validationResult == ValidationResult.InvalidWeapon)
-                        pluginInstance.LogWarning($"Removed turret loadout '{loadout.name}' for player '{ownerId}' because weapon '{loadout.weapon}' is not a valid item.");
+                        _pluginInstance.LogWarning($"Removed turret loadout '{loadout.name}' for player '{ownerId}' because weapon '{loadout.weapon}' is not a valid item.");
                     else if (validationResult == ValidationResult.DisallowedWeapon)
-                        pluginInstance.LogWarning($"Removed turret loadout '{loadout.name}' for player '{ownerId}' because they are no longer allowed to use loadouts with weapon '{loadout.weapon}'.");
+                        _pluginInstance.LogWarning($"Removed turret loadout '{loadout.name}' for player '{ownerId}' because they are no longer allowed to use loadouts with weapon '{loadout.weapon}'.");
 
                     if (validationResult == ValidationResult.InvalidWeapon || validationResult == ValidationResult.DisallowedWeapon)
                     {
@@ -972,7 +969,7 @@ namespace Oxide.Plugins
             }
         }
 
-        internal abstract class LoadoutManager
+        private abstract class LoadoutManager
         {
             public enum ValidationResult { Valid, Changed, InvalidWeapon, DisallowedWeapon }
 
@@ -1082,7 +1079,7 @@ namespace Oxide.Plugins
                     // Make sure ammo name exists
                     if (ItemManager.itemDictionaryByName[ammo.name] == null)
                     {
-                        pluginInstance.LogWarning($"Ammo type '{ammo.name}' is not a valid item. Removing from loadout.");
+                        _pluginInstance.LogWarning($"Ammo type '{ammo.name}' is not a valid item. Removing from loadout.");
                         ammo.amount = 0;
                     }
                     else if (allowedAmmo.ContainsKey(ammo.name))
@@ -1120,7 +1117,7 @@ namespace Oxide.Plugins
                         // Make sure ammo name exists
                         if (ItemManager.itemDictionaryByName[ammo.name] == null)
                         {
-                            pluginInstance.LogWarning($"Ammo type '{ammo.name}' is not a valid item. Removing from loadout.");
+                            _pluginInstance.LogWarning($"Ammo type '{ammo.name}' is not a valid item. Removing from loadout.");
                             ammo.amount = 0;
                         }
                         else if (allowedAmmo.ContainsKey(ammo.name))
@@ -1199,12 +1196,12 @@ namespace Oxide.Plugins
         // Returns the last default loadout the player has permission to
         private TurretLoadout GetPlayerDefaultLoadout(string userIdString)
         {
-            if (pluginConfig.defaultLoadouts == null || pluginConfig.defaultLoadouts.Length == 0)
+            if (_pluginConfig.defaultLoadouts == null || _pluginConfig.defaultLoadouts.Length == 0)
                 return null;
 
-            for (var i = pluginConfig.defaultLoadouts.Length - 1; i >= 0; i--)
+            for (var i = _pluginConfig.defaultLoadouts.Length - 1; i >= 0; i--)
             {
-                var loadout = pluginConfig.defaultLoadouts[i];
+                var loadout = _pluginConfig.defaultLoadouts[i];
                 if (!string.IsNullOrWhiteSpace(loadout.name) &&
                     permission.UserHasPermission(userIdString, GetDefaultLoadoutPermission(loadout.name)))
                 {
@@ -1220,12 +1217,12 @@ namespace Oxide.Plugins
         // Returns the last loadout ruleset the player has permission to
         private LoadoutRuleset GetPlayerLoadoutRules(string userIdString)
         {
-            if (pluginConfig.loadoutRulesets == null || pluginConfig.loadoutRulesets.Length == 0)
-                return pluginConfig.emptyLoadoutRuleset;
+            if (_pluginConfig.loadoutRulesets == null || _pluginConfig.loadoutRulesets.Length == 0)
+                return _pluginConfig.emptyLoadoutRuleset;
 
-            for (var i = pluginConfig.loadoutRulesets.Length - 1; i >= 0; i--)
+            for (var i = _pluginConfig.loadoutRulesets.Length - 1; i >= 0; i--)
             {
-                var loadoutRuleset = pluginConfig.loadoutRulesets[i];
+                var loadoutRuleset = _pluginConfig.loadoutRulesets[i];
                 if (!string.IsNullOrWhiteSpace(loadoutRuleset.name) &&
                     permission.UserHasPermission(userIdString, GetLoadoutRulesetPermission(loadoutRuleset.name)))
                 {
@@ -1233,10 +1230,10 @@ namespace Oxide.Plugins
                 }
             }
 
-            return pluginConfig.emptyLoadoutRuleset;
+            return _pluginConfig.emptyLoadoutRuleset;
         }
 
-        internal class Configuration : SerializableConfiguration
+        private class Configuration : SerializableConfiguration
         {
             [JsonIgnore]
             public LoadoutRuleset emptyLoadoutRuleset = new LoadoutRuleset()
@@ -1355,7 +1352,7 @@ namespace Oxide.Plugins
             };
         }
 
-        internal class LoadoutRuleset
+        private class LoadoutRuleset
         {
             [JsonProperty("Name")]
             public string name;
@@ -1396,7 +1393,7 @@ namespace Oxide.Plugins
             }
         }
 
-        internal class TurretLoadout
+        private class TurretLoadout
         {
             [JsonProperty("Name")]
             public string name;
@@ -1423,15 +1420,15 @@ namespace Oxide.Plugins
             public virtual bool IsDefault => false;
 
             public string GetDisplayName(string userIdString) =>
-                IsDefault ? pluginInstance.GetDefaultLoadoutName(userIdString) : name;
+                IsDefault ? _pluginInstance.GetDefaultLoadoutName(userIdString) : name;
         }
 
-        internal class DefaultLoadout : TurretLoadout
+        private class DefaultLoadout : TurretLoadout
         {
             public override bool IsDefault => true;
         }
 
-        internal class AmmoAmount
+        private class AmmoAmount
         {
             [JsonProperty("Name")]
             public string name;
@@ -1446,14 +1443,14 @@ namespace Oxide.Plugins
 
         #region Configuration Boilerplate
 
-        internal class SerializableConfiguration
+        private class SerializableConfiguration
         {
             public string ToJson() => JsonConvert.SerializeObject(this);
 
             public Dictionary<string, object> ToDictionary() => JsonHelper.Deserialize(ToJson()) as Dictionary<string, object>;
         }
 
-        internal static class JsonHelper
+        private static class JsonHelper
         {
             public static object Deserialize(string json) => ToObject(JToken.Parse(json));
 
@@ -1475,7 +1472,7 @@ namespace Oxide.Plugins
             }
         }
 
-        private bool MaybeUpdateConfig(Configuration config)
+        private bool MaybeUpdateConfig(SerializableConfiguration config)
         {
             var currentWithDefaults = config.ToDictionary();
             var currentRaw = Config.ToDictionary(x => x.Key, x => x.Value);
@@ -1515,27 +1512,28 @@ namespace Oxide.Plugins
             return changed;
         }
 
-        protected override void LoadDefaultConfig() => pluginConfig = GetDefaultConfig();
+        protected override void LoadDefaultConfig() => _pluginConfig = GetDefaultConfig();
 
         protected override void LoadConfig()
         {
             base.LoadConfig();
             try
             {
-                pluginConfig = Config.ReadObject<Configuration>();
-                if (pluginConfig == null)
+                _pluginConfig = Config.ReadObject<Configuration>();
+                if (_pluginConfig == null)
                 {
                     throw new JsonException();
                 }
 
-                if (MaybeUpdateConfig(pluginConfig))
+                if (MaybeUpdateConfig(_pluginConfig))
                 {
                     LogWarning("Configuration appears to be outdated; updating and saving");
                     SaveConfig();
                 }
             }
-            catch
+            catch (Exception e)
             {
+                LogError(e.Message);
                 LogWarning($"Configuration file {Name}.json is invalid; using defaults");
                 LoadDefaultConfig();
             }
@@ -1544,7 +1542,7 @@ namespace Oxide.Plugins
         protected override void SaveConfig()
         {
             Log($"Configuration changes saved to {Name}.json");
-            Config.WriteObject(pluginConfig, true);
+            Config.WriteObject(_pluginConfig, true);
         }
 
         #endregion
