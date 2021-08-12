@@ -117,7 +117,7 @@ namespace Oxide.Plugins
                     var isInstrument = (heldItem.GetHeldEntity() as HeldEntity)?.IsInstrument() ?? false;
                     if ((isInstrument || GetTotalAmmo(turret) > 0) && HasPermissionAny(ownerPlayer, Permission_AutoToggle))
                     {
-                        turret.SetOnline();
+                        turret.InitiateStartup();
                         var turretSwitch = turret.GetComponentInChildren<ElectricSwitch>();
                         if (turretSwitch != null)
                             turretSwitch.SetSwitch(true);
