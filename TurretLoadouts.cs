@@ -383,7 +383,7 @@ namespace Oxide.Plugins
 
         private void AddListItem(StringBuilder sb, IPlayer player, TurretLoadout loadout, string activeLoadout)
         {
-            var weaponDefinition = ItemManager.itemDictionaryByName[loadout.Weapon];
+            var weaponDefinition = ItemManager.FindItemDefinition(loadout.Weapon);
             var activeString = loadout.IsDefault && activeLoadout == null || activeLoadout == loadout.Name ? GetMessage(player, "Command.List.Item.Active") : string.Empty;
 
             var attachmentAbbreviations = AbbreviateAttachments(player, loadout);
@@ -453,7 +453,7 @@ namespace Oxide.Plugins
             var disallowedItems = new Dictionary<string, int>();
             if (playerData.ValidateAndPossiblyReduceLoadout(loadout, loadoutRuleset, disallowedItems) == LoadoutManager.ValidationResult.DisallowedWeapon)
             {
-                var itemDefinition = ItemManager.itemDictionaryByName[loadout.Weapon];
+                var itemDefinition = ItemManager.FindItemDefinition(loadout.Weapon);
                 ReplyToPlayer(player, "Generic.Error.WeaponNotAllowed", itemDefinition.displayName.translated);
                 return;
             }
@@ -506,7 +506,7 @@ namespace Oxide.Plugins
             var disallowedItems = new Dictionary<string, int>();
             if (playerData.ValidateAndPossiblyReduceLoadout(newLoadout, loadoutPermission, disallowedItems) == LoadoutManager.ValidationResult.DisallowedWeapon)
             {
-                var itemDefinition = ItemManager.itemDictionaryByName[newLoadout.Weapon];
+                var itemDefinition = ItemManager.FindItemDefinition(newLoadout.Weapon);
                 ReplyToPlayer(player, "Generic.Error.WeaponNotAllowed", itemDefinition.displayName.translated);
                 return;
             }
@@ -877,8 +877,8 @@ namespace Oxide.Plugins
 
                 if (loadout.Ammo != null)
                 {
-                    ItemDefinition loadedAmmoItemDefinition;
-                    if (!ItemManager.itemDictionaryByName.TryGetValue(loadout.Ammo.Name, out loadedAmmoItemDefinition))
+                    ItemDefinition loadedAmmoItemDefinition = ItemManager.FindItemDefinition(loadout.Ammo.Name);
+                    if (loadedAmmoItemDefinition == null)
                     {
                         LogError($"Ammo type '{loadout.Ammo.Name}' is not a valid item. Unable to add ammo to turret for player {ownerPlayer.userID}.");
                         return heldItem;
@@ -908,7 +908,7 @@ namespace Oxide.Plugins
                 if (ammo.Amount <= 0)
                     continue;
 
-                var itemDefinition = ItemManager.itemDictionaryByName[ammo.Name];
+                var itemDefinition = ItemManager.FindItemDefinition(ammo.Name);
                 if (itemDefinition == null)
                 {
                     LogError($"Ammo type '{ammo.Name}' is not a valid item. Unable to add ammo to turret for player {ownerPlayer.userID}.");
@@ -964,7 +964,7 @@ namespace Oxide.Plugins
 
         private string GetItemDisplayName(string shortname)
         {
-            var itemDefinition = ItemManager.itemDictionaryByName[shortname];
+            var itemDefinition = ItemManager.FindItemDefinition(shortname);
             return itemDefinition == null ? shortname : itemDefinition.displayName.translated;
         }
 
@@ -1135,7 +1135,7 @@ namespace Oxide.Plugins
                 if (disallowedItems == null)
                     disallowedItems = new Dictionary<string, int>();
 
-                var weaponDefinition = ItemManager.itemDictionaryByName[loadout.Weapon];
+                var weaponDefinition = ItemManager.FindItemDefinition(loadout.Weapon);
                 if (weaponDefinition == null)
                     return ValidationResult.InvalidWeapon;
 
@@ -1168,7 +1168,7 @@ namespace Oxide.Plugins
                     var ammo = loadout.Ammo;
 
                     // Make sure ammo name exists
-                    if (ItemManager.itemDictionaryByName[ammo.Name] == null)
+                    if (ItemManager.FindItemDefinition(ammo.Name) == null)
                     {
                         _pluginInstance.LogWarning($"Ammo type '{ammo.Name}' is not a valid item. Removing from loadout.");
                         ammo.Amount = 0;
@@ -1206,7 +1206,7 @@ namespace Oxide.Plugins
                         var ammo = loadout.ReserveAmmo[i];
 
                         // Make sure ammo name exists
-                        if (ItemManager.itemDictionaryByName[ammo.Name] == null)
+                        if (ItemManager.FindItemDefinition(ammo.Name) == null)
                         {
                             _pluginInstance.LogWarning($"Ammo type '{ammo.Name}' is not a valid item. Removing from loadout.");
                             ammo.Amount = 0;
