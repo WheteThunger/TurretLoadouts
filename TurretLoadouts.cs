@@ -924,6 +924,22 @@ namespace Oxide.Plugins
                     ammoItem.Remove();
                 }
 
+                if (ammoItem.parent != container)
+                {
+                    // The item was split due to max stack size.
+                    if (loadout.IsDefault)
+                    {
+                        var destinationItem = container.GetSlot(slot);
+                        if (destinationItem != null)
+                        {
+                            destinationItem.amount = amountToAdd;
+                            destinationItem.MarkDirty();
+                        }
+                    }
+
+                    ammoItem.Remove();
+                }
+
                 slot++;
             }
         }
