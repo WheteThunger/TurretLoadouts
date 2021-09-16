@@ -24,6 +24,7 @@ namespace Oxide.Plugins
 
         private const string Permission_AutoAuth = "turretloadouts.autoauth";
         private const string Permission_AutoToggle = "turretloadouts.autotoggle";
+        private const string Permission_AutoToggleSamSite = "turretloadouts.autotoggle.samsite";
         private const string Permission_Manage = "turretloadouts.manage";
         private const string Permission_ManageCustom = "turretloadouts.manage.custom";
 
@@ -47,6 +48,7 @@ namespace Oxide.Plugins
 
             permission.RegisterPermission(Permission_AutoAuth, this);
             permission.RegisterPermission(Permission_AutoToggle, this);
+            permission.RegisterPermission(Permission_AutoToggleSamSite, this);
             permission.RegisterPermission(Permission_Manage, this);
             permission.RegisterPermission(Permission_ManageCustom, this);
 
@@ -148,6 +150,10 @@ namespace Oxide.Plugins
                 if (loadout != null)
                 {
                     AddReserveAmmo(samSite.inventory, loadout, ownerPlayer);
+
+                    if (!samSite.inventory.IsEmpty() && HasPermissionAny(ownerPlayer, Permission_AutoToggleSamSite))
+                        samSite.SetFlag(IOEntity.Flag_HasPower, true);
+
                     if (_pluginConfig.LockAutoFilledTurrets)
                     {
                         samSite.inventory.SetLocked(true);
