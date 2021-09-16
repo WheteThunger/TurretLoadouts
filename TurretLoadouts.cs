@@ -854,7 +854,6 @@ namespace Oxide.Plugins
                     }
                     else if (!attachmentItem.MoveToContainer(heldItem.contents))
                     {
-                        LogError($"Unable to move attachment item '{attachmentName}' to weapon for player {ownerPlayer.userID}.");
                         attachmentItem.Remove();
                     }
                 }
@@ -862,7 +861,6 @@ namespace Oxide.Plugins
 
             if (!heldItem.MoveToContainer(turret.inventory, 0))
             {
-                LogError($"Unable to move weapon {heldItem.info.shortname} to turret inventory for player {ownerPlayer.userID}.");
                 heldItem.Remove();
                 return null;
             }
@@ -919,10 +917,7 @@ namespace Oxide.Plugins
                 var amountToAdd = loadout.IsDefault ? ammo.Amount : Math.Min(ammo.Amount, itemDefinition.stackable);
                 var ammoItem = ItemManager.Create(itemDefinition, amountToAdd);
                 if (!ammoItem.MoveToContainer(container, slot))
-                {
-                    LogError($"Unable to add ammo {ammoItem.amount} '{itemDefinition.shortname}' to inventory slot {slot} for player {ownerPlayer.userID}.");
                     ammoItem.Remove();
-                }
 
                 if (ammoItem.parent != container)
                 {
