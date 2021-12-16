@@ -151,7 +151,7 @@ namespace Oxide.Plugins
                 {
                     AddReserveAmmo(samSite.inventory, loadout, ownerPlayer);
 
-                    if (!samSite.inventory.IsEmpty() && HasPermissionAny(ownerPlayer, Permission_AutoToggleSamSite))
+                    if (HasPermissionAny(ownerPlayer, Permission_AutoToggleSamSite))
                         samSite.SetFlag(IOEntity.Flag_HasPower, true);
 
                     if (_pluginConfig.LockAutoFilledTurrets)
