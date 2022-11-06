@@ -868,6 +868,12 @@ namespace Oxide.Plugins
             var weapon = heldItem.GetHeldEntity() as BaseProjectile;
             if (weapon != null)
             {
+                if (loadout.Attachments != null)
+                {
+                    weapon.DelayedModsChanged();
+                    weapon.CancelInvoke(weapon.DelayedModsChanged);
+                }
+
                 // Must unload the weapon first or the turret will unload it and the ammo will temporarily take up inventory space
                 weapon.primaryMagazine.contents = 0;
                 turret.UpdateAttachedWeapon();
