@@ -368,3 +368,22 @@ Any weapon except M249, any attachments except silencer, and any ammo.
   "Abbreviation.weapon.mod.small.scope": "8x"
 }
 ```
+
+## Developer API
+
+### API_FillEntity
+
+```cs
+void API_FillTurret(BasePlayer player, BaseEntity turret)
+```
+
+Plugins can call this API to fill the turret (`AutoTurret`, `SamSite`, `FlameTurret`, `GunTrap`) with the player's assigned loadout.
+
+## Developer Hooks
+
+```cs
+object OnTurretLoadoutFill(BasePlayer player, BaseEntity turret)
+```
+
+- Called when this plugin is about to fill a turret (`AutoTurret`, `SamSite`, `FlameTurret`, `GunTrap`) with a player's assigned loadout
+- Returning `false` prevents the turret from being filled

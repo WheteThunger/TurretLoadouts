@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Oxide.Core.Plugins;
 using UnityEngine;
 
 namespace Oxide.Plugins
@@ -93,109 +94,7 @@ namespace Oxide.Plugins
             if (entity == null)
                 return;
 
-            var turret = entity as AutoTurret;
-            if (turret != null)
-            {
-                var loadout = GetPlayerActiveLoadout(ownerPlayer.UserIDString);
-                if (loadout != null)
-                {
-                    if (loadout.Peacekeeper)
-                    {
-                        turret.SetPeacekeepermode(true);
-                    }
-
-                    var heldItem = AddHeldEntity(turret, ownerPlayer, loadout);
-                    if (heldItem != null)
-                    {
-                        AddReserveAmmo(turret.inventory, loadout, ownerPlayer, firstSlot: 1);
-                        turret.UpdateTotalAmmo();
-                        turret.EnsureReloaded();
-
-                        var isInstrument = (heldItem.GetHeldEntity() as HeldEntity)?.IsInstrument() ?? false;
-                        if ((isInstrument || GetTotalAmmo(turret) > 0) && HasPermissionAny(ownerPlayer, Permission_AutoToggle))
-                        {
-                            turret.InitiateStartup();
-                            var turretSwitch = turret.GetComponentInChildren<ElectricSwitch>();
-                            if (turretSwitch != null)
-                            {
-                                turretSwitch.SetSwitch(true);
-                            }
-                        }
-
-                        if (_config.LockAutoFilledTurrets)
-                        {
-                            heldItem.contents.SetLocked(true);
-                            turret.inventory.SetLocked(true);
-                            SetupLockedContainer(turret);
-                        }
-
-                        if (HasPermissionAny(ownerPlayer, Permission_Manage, Permission_ManageCustom))
-                        {
-                            ChatMessage(ownerPlayer, "Generic.FilledFromLoadout", GetLoadoutDisplayName(loadout, ownerPlayer.UserIDString));
-                        }
-                    }
-                }
-
-                turret.SendNetworkUpdate();
-                return;
-            }
-
-            var samSite = entity as SamSite;
-            if (samSite != null)
-            {
-                var loadout = GetPlayerLastAllowedProfile(_config.DefaultSamSiteLoadouts, ownerPlayer.UserIDString);
-                if (loadout != null)
-                {
-                    AddReserveAmmo(samSite.inventory, loadout, ownerPlayer);
-
-                    if (HasPermissionAny(ownerPlayer, Permission_AutoToggleSamSite))
-                    {
-                        samSite.SetFlag(IOEntity.Flag_HasPower, true);
-                    }
-
-                    if (_config.LockAutoFilledTurrets)
-                    {
-                        samSite.inventory.SetLocked(true);
-                        SetupLockedContainer(samSite);
-                    }
-                }
-
-                return;
-            }
-
-            var flameTurret = entity as FlameTurret;
-            if (flameTurret != null)
-            {
-                var loadout = GetPlayerLastAllowedProfile(_config.DefaultFlameTurretLoadouts, ownerPlayer.UserIDString);
-                if (loadout != null)
-                {
-                    AddReserveAmmo(flameTurret.inventory, loadout, ownerPlayer);
-                    if (_config.LockAutoFilledTurrets)
-                    {
-                        flameTurret.inventory.SetLocked(true);
-                        SetupLockedContainer(flameTurret);
-                    }
-                }
-
-                return;
-            }
-
-            var gunTrap = entity as GunTrap;
-            if (gunTrap != null)
-            {
-                var loadout = GetPlayerLastAllowedProfile(_config.DefaultShotgunTrapLoadouts, ownerPlayer.UserIDString);
-                if (loadout != null)
-                {
-                    AddReserveAmmo(gunTrap.inventory, loadout, ownerPlayer);
-                    if (_config.LockAutoFilledTurrets)
-                    {
-                        gunTrap.inventory.SetLocked(true);
-                        SetupLockedContainer(gunTrap);
-                    }
-                }
-
-                return;
-            }
+            FillTurretLikeEntity(ownerPlayer, entity);
         }
 
         private void OnEntityPickedUp(StorageContainer container)
@@ -245,6 +144,28 @@ namespace Oxide.Plugins
                 return False;
 
             return null;
+        }
+
+        #endregion
+
+        #region API
+
+        [HookMethod(nameof(API_FillTurret))]
+        public void API_FillTurret(BasePlayer player, BaseEntity turret)
+        {
+            FillTurretLikeEntity(player, turret);
+        }
+
+        #endregion
+
+        #region Exposed Hooks
+
+        private static class ExposedHooks
+        {
+            public static object OnTurretLoadoutFill(BasePlayer player, BaseEntity turret)
+            {
+                return Interface.CallHook("OnTurretLoadoutFill", player, turret);
+            }
         }
 
         #endregion
@@ -957,6 +878,121 @@ namespace Oxide.Plugins
                 }
 
                 slot++;
+            }
+        }
+
+        private void FillAutoTurret(BasePlayer player, AutoTurret turret)
+        {
+            var loadout = GetPlayerActiveLoadout(player.UserIDString);
+            if (loadout == null)
+                return;
+
+            if (loadout.Peacekeeper)
+            {
+                turret.SetPeacekeepermode(true);
+            }
+
+            var heldItem = AddHeldEntity(turret, player, loadout);
+            if (heldItem == null)
+                return;
+
+            AddReserveAmmo(turret.inventory, loadout, player, firstSlot: 1);
+            turret.UpdateTotalAmmo();
+            turret.EnsureReloaded();
+
+            var isInstrument = (heldItem.GetHeldEntity() as HeldEntity)?.IsInstrument() ?? false;
+            if ((isInstrument || GetTotalAmmo(turret) > 0) && HasPermissionAny(player, Permission_AutoToggle))
+            {
+                turret.InitiateStartup();
+                var turretSwitch = turret.GetComponentInChildren<ElectricSwitch>();
+                if (turretSwitch != null)
+                {
+                    turretSwitch.SetSwitch(true);
+                }
+            }
+
+            if (_config.LockAutoFilledTurrets)
+            {
+                heldItem.contents.SetLocked(true);
+                turret.inventory.SetLocked(true);
+                SetupLockedContainer(turret);
+            }
+
+            if (HasPermissionAny(player, Permission_Manage, Permission_ManageCustom))
+            {
+                ChatMessage(player, "Generic.FilledFromLoadout", GetLoadoutDisplayName(loadout, player.UserIDString));
+            }
+
+            turret.SendNetworkUpdate();
+        }
+
+        private void FillSamSite(BasePlayer player, SamSite samSite)
+        {
+            var loadout = GetPlayerLastAllowedProfile(_config.DefaultSamSiteLoadouts, player.UserIDString);
+            if (loadout == null)
+                return;
+
+            AddReserveAmmo(samSite.inventory, loadout, player);
+
+            if (HasPermissionAny(player, Permission_AutoToggleSamSite))
+            {
+                samSite.SetFlag(IOEntity.Flag_HasPower, true);
+            }
+
+            if (_config.LockAutoFilledTurrets)
+            {
+                samSite.inventory.SetLocked(true);
+                SetupLockedContainer(samSite);
+            }
+        }
+
+        private void FillFlameTurret(BasePlayer player, FlameTurret flameTurret)
+        {
+            var loadout = GetPlayerLastAllowedProfile(_config.DefaultFlameTurretLoadouts, player.UserIDString);
+            if (loadout == null)
+                return;
+
+            AddReserveAmmo(flameTurret.inventory, loadout, player);
+            if (_config.LockAutoFilledTurrets)
+            {
+                flameTurret.inventory.SetLocked(true);
+                SetupLockedContainer(flameTurret);
+            }
+        }
+
+        private void FillGunTrap(BasePlayer player, GunTrap gunTrap)
+        {
+            var loadout = GetPlayerLastAllowedProfile(_config.DefaultShotgunTrapLoadouts, player.UserIDString);
+            if (loadout == null)
+                return;
+
+            AddReserveAmmo(gunTrap.inventory, loadout, player);
+            if (_config.LockAutoFilledTurrets)
+            {
+                gunTrap.inventory.SetLocked(true);
+                SetupLockedContainer(gunTrap);
+            }
+        }
+
+        private void FillTurretLikeEntity(BasePlayer player, BaseEntity entity)
+        {
+            if (ExposedHooks.OnTurretLoadoutFill(player, entity) is false)
+                return;
+
+            switch (entity)
+            {
+                case AutoTurret turret:
+                    FillAutoTurret(player, turret);
+                    return;
+                case SamSite samSite:
+                    FillSamSite(player, samSite);
+                    return;
+                case FlameTurret flameTurret:
+                    FillFlameTurret(player, flameTurret);
+                    return;
+                case GunTrap gunTrap:
+                    FillGunTrap(player, gunTrap);
+                    return;
             }
         }
 
