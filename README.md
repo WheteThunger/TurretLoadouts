@@ -21,7 +21,6 @@
 
 ## Permissions
 
-- `turretloadouts.autoauth` -- For players with this permission, deploying a turret will automatically authorize the player to it.
 - `turretloadouts.autotoggle` -- For players with this permission, deploying a turret will automatically power it on, but only if it was filled with a weapon and ammo.
 - `turretloadouts.autotoggle.samsite` -- For players with this permission, deploying a sam site will automatically power it on.
 - `turretloadouts.manage` -- Allows the player to use `tl`, `tl help|list`, and `tl <loadout name>`.

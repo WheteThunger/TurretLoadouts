@@ -22,7 +22,6 @@ namespace Oxide.Plugins
 
         private const int LoadoutNameMaxLength = 20;
 
-        private const string Permission_AutoAuth = "turretloadouts.autoauth";
         private const string Permission_AutoToggle = "turretloadouts.autotoggle";
         private const string Permission_AutoToggleSamSite = "turretloadouts.autotoggle.samsite";
         private const string Permission_Manage = "turretloadouts.manage";
@@ -46,7 +45,6 @@ namespace Oxide.Plugins
         {
             _pluginInstance = this;
 
-            permission.RegisterPermission(Permission_AutoAuth, this);
             permission.RegisterPermission(Permission_AutoToggle, this);
             permission.RegisterPermission(Permission_AutoToggleSamSite, this);
             permission.RegisterPermission(Permission_Manage, this);
@@ -103,8 +101,6 @@ namespace Oxide.Plugins
             AutoTurret turret = entity as AutoTurret;
             if (turret != null)
             {
-                MaybeAuthTurret(turret, ownerPlayer);
-
                 var loadout = GetPlayerActiveLoadout(ownerPlayer.UserIDString);
                 if (loadout != null)
                 {
@@ -756,21 +752,6 @@ namespace Oxide.Plugins
 
             // AutoTurret.GetTotalAmmo() only includes the reserve ammo, not the loaded ammo
             return weapon.primaryMagazine.contents + turret.GetTotalAmmo();
-        }
-
-        private void MaybeAuthTurret(AutoTurret turret, BasePlayer ownerPlayer)
-        {
-            if (!HasPermissionAny(ownerPlayer, Permission_AutoAuth))
-                return;
-
-            if (turret.IsAuthed(ownerPlayer))
-                return;
-
-            turret.authorizedPlayers.Add(new PlayerNameID
-            {
-                userid = ownerPlayer.userID,
-                username = ownerPlayer.UserIDString
-            });
         }
 
         private TurretLoadout CreateLoadout(AutoTurret turret)
